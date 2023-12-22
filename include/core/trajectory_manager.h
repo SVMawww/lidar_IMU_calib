@@ -33,11 +33,12 @@
 #include <kontiki/measurements/orientation_measurement.h>
 #include <kontiki/measurements/position_measurement.h>
 
+
 #include <utils/dataset_reader.h>
 #include <core/surfel_association.h>
 #include <core/calibration.hpp>
 #include <Eigen/Core>
-#include <fstream>
+
 #include <memory>
 
 namespace licalib {

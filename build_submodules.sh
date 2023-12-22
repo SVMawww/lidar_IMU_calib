@@ -20,6 +20,6 @@ rm -rf "$BUILD_PANGOLIN"
 mkdir -p "$BUILD_PANGOLIN"
 pushd "$BUILD_PANGOLIN"
 cmake ../Pangolin
-make -j$NUM_PARALLEL_BUILDS
+make -j4
 popd
 

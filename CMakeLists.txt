@@ -22,6 +22,7 @@ find_package(catkin REQUIRED COMPONENTS
   ndt_omp
   tf
   pcl_ros
+  angles
 )
 
 find_package(Eigen3 REQUIRED)
@@ -31,6 +32,7 @@ set(PANGOLIN_DIR "${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/build-pangolin")
 find_package(Pangolin REQUIRED)
 
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/Kontiki)
+# add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/basalt-headers)
 
 # Set link libraries used by all binaries
 list(APPEND thirdparty_libraries
@@ -53,6 +55,8 @@ include_directories( include
         ${Boost_INCLUDE_DIRS}
         ${Pangolin_INCLUDE_DIRS}
 )
+
+message("!!!"${catkin_INCLUDE_DIRS})
 
 add_library(li_calib_lib
         src/core/trajectory_manager.cpp

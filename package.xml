@@ -57,6 +57,7 @@
   <build_depend>rosbag</build_depend>
   <build_depend>tf</build_depend>
   <build_depend>ndt_omp</build_depend>
+  <build_depend>angles</build_depend>
 
 <!--  <build_export_depend>geometry_msgs</build_export_depend>-->
 <!--  <build_export_depend>nav_msgs</build_export_depend>-->
@@ -78,6 +79,7 @@
   <run_depend>rosbag</run_depend>
   <run_depend>tf</run_depend>
   <run_depend>ndt_omp</run_depend>
+  <run_depend>angles</run_depend>
 
 
   <!-- The export tag contains other, unspecified, tags -->

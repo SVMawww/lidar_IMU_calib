@@ -18,6 +18,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
+#include "ui/calib_helper.h"
 #include <core/trajectory_manager.h>
 #include <utils/math_utils.h>
 #include <utils/eigen_utils.hpp>
@@ -42,8 +43,8 @@ void TrajectoryManager::feedIMUData(const IO::IMUData& data) {
 void TrajectoryManager::initialSO3TrajWithGyro() {
   assert(imu_data_.size() > 0 &&
          "[initialSO3TrajWithGyro]: There's NO imu data for initialization.");
-  std::shared_ptr<SO3TrajEstimator> estimator_SO3;
-  estimator_SO3 = std::make_shared<SO3TrajEstimator>(traj_->SO3Spline());
+  
+  auto estimator_SO3 = std::make_shared<SO3TrajEstimator>(traj_->SO3Spline());
 
   addGyroscopeMeasurements(estimator_SO3);
 
@@ -57,7 +58,7 @@ void TrajectoryManager::initialSO3TrajWithGyro() {
   estimator_SO3->AddMeasurement<OrientationMeasurement>(m_q0);
 
   ceres::Solver::Summary summary = estimator_SO3->Solve(30, false);
-  std::cout << summary.BriefReport() << std::endl;
+  std::cout << RED <<summary.BriefReport() << RESET << std::endl;
 }
 
 void TrajectoryManager::trajInitFromSurfel(

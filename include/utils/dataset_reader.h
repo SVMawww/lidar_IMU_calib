@@ -30,7 +30,6 @@
 #include <sensor_msgs/Imu.h>
 #include <nav_msgs/Odometry.h>
 
-#include <fstream>
 #include <Eigen/Core>
 #include <utils/eigen_utils.hpp>
 #include <utils/vlp_common.h>
@@ -98,7 +97,7 @@ public:
     }
   }
 
-  bool read(const std::string path,
+  void read(const std::string path,
             const std::string imu_topic,
             const std::string lidar_topic,
             const double bag_start = -1.0,
@@ -177,11 +176,12 @@ public:
   /// selected data [scan_0, scan_N-1],[IMU_0, IMU_N]
   /// time  [scan_0.t, scan_N.t)
   void adjustDataset() {
-    assert(imu_data.size() > 0 && "No IMU data. Check your bag and imu topic");
-    assert(scan_data.size() > 0 && "No scan data. Check your bag and lidar topic");
+    std::cout << imu_data_.size() << std::endl;
+    assert(imu_data_.size() > 0 && "No IMU data. Check your bag and imu topic");
+    assert(scan_data_.size() > 0 && "No scan data. Check your bag and lidar topic");
 
-    assert(scan_timestamps.front() < imu_data.back().timestamp
-           && scan_timestamps.back() > imu_data.front().timestamp
+    assert(scan_timestamps_.front() < imu_data_.back().timestamp
+           && scan_timestamps_.back() > imu_data_.front().timestamp
            && "Unvalid dataset. Check your dataset.. ");
 
     if (scan_timestamps_.front() > imu_data_.front().timestamp) {

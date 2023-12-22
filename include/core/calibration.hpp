@@ -23,7 +23,7 @@
 
 #define _USE_MATH_DEFINES
 #include <cmath>
-
+#include <iostream>
 #include <Eigen/Eigen>
 #include <memory>
 #include <fstream>

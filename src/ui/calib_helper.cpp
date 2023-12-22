@@ -18,11 +18,12 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
+#include "utils/dataset_reader.h"
 #include <ui/calib_helper.h>
 #include <core/scan_undistortion.h>
 #include <utils/tic_toc.h>
 
-#include <boost/filesystem.hpp>
+
 #include <memory>
 #include <sstream>
 
@@ -66,10 +67,15 @@ CalibrHelper::CalibrHelper(ros::NodeHandle& nh)
       ROS_WARN("LiDAR model %s not support yet.", lidar_model.c_str());
     }
     /// read dataset
-    std::cout << "\nLoad dataset from " << bag_path_ << std::endl;
+
     IO::LioDataset lio_dataset_temp(lidar_model_type);
+    // dataset_reader_ = std::make_shared<IO::LioDataset>(lidar_model_type);
+
     lio_dataset_temp.read(bag_path_, topic_imu_, topic_lidar, bag_start, bag_durr);
     dataset_reader_ = lio_dataset_temp.get_data();
+    
+    // dataset_reader_->read(bag_path_, topic_imu_, topic_lidar);
+
     dataset_reader_->adjustDataset();
   }
 
