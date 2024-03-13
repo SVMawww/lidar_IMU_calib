@@ -38,13 +38,14 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #pragma once
 
+#define FMT_HEADER_ONLY
 #include <basalt/spline/rd_spline.h>
 #include <basalt/spline/so3_spline.h>
 #include <basalt/utils/assert.h>
 
 #include <basalt/spline/spline_segment.h>
 #include <basalt/spline/calib_bias.hpp>
-
+#include <fmt/format.h>
 #include <array>
 
 namespace basalt {
@@ -572,7 +573,7 @@ class Se3Spline {
     return pos_spline.computeTIndex(timestamp);
   }
 
-  void CaculateSplineMeta(time_init_t times,
+  void CalculateSplineMeta(time_init_t times,
                           SplineMeta<_N> &spline_meta) const {
     double master_dt = getDt();
     double master_t0 = minTime();

@@ -143,6 +143,43 @@ void CalibrHelper::Initialization() {
     ROS_WARN("[Initialization] fails.");
 }
 
+void CalibrHelper::Initialize() {
+  if (Start != calib_step_) {
+    ROS_WARN("[Initialization] Need status: Start.");
+    return;
+  }
+  for (const auto& imu_data: dataset_reader_->get_imu_data()) {
+    trajectory_manager->FeedIMUData(imu_data);
+  }
+  trajectory_manager->initialSO3TrajWithGyro();
+
+  for(const TPointCloud& raw_scan: dataset_reader_->get_scan_data()) {
+    VPointCloud::Ptr cloud(new VPointCloud);
+    TPointCloud2VPointCloud(raw_scan.makeShared(), cloud);
+    double scan_timestamp = pcl_conversions::fromPCL(raw_scan.header.stamp).toSec();
+
+    lidar_odom_->feedScan(scan_timestamp, cloud);
+
+    if (lidar_odom_->get_odom_data().size() < 30
+        || (lidar_odom_->get_odom_data().size() % 10 != 0))
+      continue;
+    if (rotation_initializer_->estimateRotation(trajectory_manager,
+                                                lidar_odom_->get_odom_data())) {
+      Eigen::Quaterniond qItoLidar = rotation_initializer_->getQ_ItoS();
+      trajectory_manager->getCalibParamManager()->set_q_LtoI(qItoLidar.conjugate());
+
+      Eigen::Vector3d euler_ItoL = qItoLidar.toRotationMatrix().eulerAngles(0,1,2);
+      std::cout << "[Initialization] Done. Euler_ItoL initial degree: "
+                << (euler_ItoL*180.0/M_PI).transpose() << std::endl;
+      calib_step_ = InitializationDone;
+      break;
+    }
+  }
+  if (calib_step_ != InitializationDone)
+    ROS_WARN("[Initialization] fails.");
+}
+
+
 void CalibrHelper::DataAssociation() {
   std::cout << "[Association] start ...." << std::endl;
   TicToc timer;

@@ -88,7 +88,7 @@ void CalibInterface::initGui() {
           .SetHandler(new pangolin::Handler3D(s_cam_));
 
   pangolin::Var<std::function<void(void)>> initialization(
-          "ui.Initialization", std::bind(&CalibInterface::Initialization, this));
+          "ui.Initialization", std::bind(&CalibInterface::Initialize, this));
 
   pangolin::Var<std::function<void(void)>> data_association(
           "ui.DataAssociation", std::bind(&CalibInterface::DataAssociation, this));

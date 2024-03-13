@@ -61,6 +61,8 @@ void TrajectoryManager::initialSO3TrajWithGyro() {
   std::cout << RED <<summary.BriefReport() << RESET << std::endl;
 }
 
+
+
 void TrajectoryManager::trajInitFromSurfel(
         SurfelAssociation::Ptr surfels_association,
         bool opt_time_offset_) {

@@ -102,7 +102,7 @@ struct CeresSplineHelper {
   /// in the body frame
   template <class T, template <class> class GroupT>
   static inline void evaluate_lie(
-      T const* const* sKnots, const double u, const double inv_dt,
+      T const* const* sKnots, const double& u, const double& inv_dt,
       GroupT<T>* transform_out = nullptr,
       typename GroupT<T>::Tangent* vel_out = nullptr,
       typename GroupT<T>::Tangent* accel_out = nullptr,

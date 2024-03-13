@@ -4,7 +4,7 @@
 #include <cstdint>
 #include <ceres/jet.h>
 #include <iomanip>
-
+#include <vector>
 namespace basalt {
 
 // Define time types

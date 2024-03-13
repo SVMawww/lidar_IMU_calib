@@ -26,6 +26,7 @@
 #include <core/surfel_association.h>
 #include <utils/dataset_reader.h>
 #include <core/scan_undistortion.h>
+#include "core/traj_manager.hpp"
 
 //the following are UBUNTU/LINUX ONLY terminal color codes.
 #define RESET   "\033[0m"
@@ -57,7 +58,7 @@ public:
   bool createCacheFolder(const std::string& bag_path);
   
   void Initialization();
-
+  void Initialize();
   void DataAssociation();
 
   void BatchOptimization();
@@ -94,6 +95,7 @@ protected:
   std::shared_ptr<IO::LioDataset> dataset_reader_;
   InertialInitializer::Ptr rotation_initializer_;
   TrajectoryManager::Ptr traj_manager_;
+  TrajManager<4>::Ptr trajectory_manager;
   LiDAROdometry::Ptr lidar_odom_;
   SurfelAssociation::Ptr surfel_association_;
 

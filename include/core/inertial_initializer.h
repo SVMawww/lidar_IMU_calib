@@ -24,6 +24,7 @@
 #include <ros/ros.h>
 #include <utils/eigen_utils.hpp>
 #include <core/trajectory_manager.h>
+#include <core/traj_manager.hpp>
 #include <core/lidar_odometry.h>
 
 namespace licalib {
@@ -42,7 +43,8 @@ public:
 
   bool EstimateRotation(TrajectoryManager::Ptr traj_manager,
                         const Eigen::aligned_vector<LiDAROdometry::OdomData>& odom_data);
-
+  bool estimateRotation(TrajManager<4>::Ptr traj_manager,
+                        const Eigen::aligned_vector<LiDAROdometry::OdomData>& odom_data);
   bool isInitialized() {
     return rotaion_initialized_;
   }
