@@ -4,17 +4,6 @@ COPY . .
 
 ENV PATH=/usr/local/bin:${PATH}
 
-# 构建gcc13.2版本，原来的gcc版本太老了
-RUN apt update && apt install libgmp-dev libmpfr-dev libmpc-dev -y && \
-    curl -o gcc-13.2.0.tar.gz https://mirrors.aliyun.com/gnu/gcc/gcc-13.2.0/gcc-13.2.0.tar.gz?spm=a2c6h.25603864.0.0.161bf5adoCdYSL && \
-    tar xf gcc-13.2.0.tar.gz  && rm gcc-13.2.0.tar.gz && cd gcc-13.2.0  && \
-    ./contrib/download_prerequisites && \
-    mkdir build && cd build && \
-    ../configure --prefix=/usr/local --enable-threads=posix  -enable-checking=release -enable-languages=c,c++ -disable-multilib && \
-    make -j24 && \
-    make install && rm -r /app/gcc-13.2.0 
-
-
 # 构建ceres 层
 RUN apt update  && \
     apt install libgoogle-glog-dev libgflags-dev libatlas-base-dev libsuitesparse-dev libeigen3-dev libsuitesparse-dev -y && \
@@ -46,7 +35,6 @@ RUN apt install libomp-dev -y && \
 
 ENV USER=root
 ENV PYTHONPATH=$PYTHONPATH:/opt/ros/melodic/lib/python2.7/dist-packages
-# ENV https_proxy=http://192.168.5.6:7890
 ENV PATH=/opt/ros/melodic/bin:/opt/ros/melodic/bin:${PATH}
 ENV CMAKE_PREFIX_PATH=/catkin_ws/devel:/opt/ros/melodic:${CMAKE_PREFIX_PATH}
 # 添加示例程序
