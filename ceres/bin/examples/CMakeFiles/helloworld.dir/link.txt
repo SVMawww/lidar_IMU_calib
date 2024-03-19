@@ -1,0 +1,1 @@
+/usr/bin/c++   -fopenmp -Wno-unknown-pragmas -Wno-sign-compare -Wno-unused-parameter -Wno-missing-field-initializers -O3 -DNDEBUG   -rdynamic CMakeFiles/helloworld.dir/helloworld.cc.o  -o ../bin/helloworld ../lib/libceres.a -lglog -lgomp -lpthread 

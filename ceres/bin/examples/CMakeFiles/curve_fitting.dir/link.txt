@@ -1,0 +1,1 @@
+/usr/bin/c++   -fopenmp -Wno-unknown-pragmas -Wno-sign-compare -Wno-unused-parameter -Wno-missing-field-initializers -O3 -DNDEBUG   -rdynamic CMakeFiles/curve_fitting.dir/curve_fitting.cc.o  -o ../bin/curve_fitting ../lib/libceres.a -lglog -lgomp -lpthread 
