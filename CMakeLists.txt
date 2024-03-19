@@ -1,7 +1,8 @@
 cmake_minimum_required(VERSION 3.2)
 project(li_calib)
 
-set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
 # set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3 -msse4.2")
 # set(CMAKE_BUILD_TYPE "RELEASE")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O0 -msse4.2")
@@ -67,6 +68,8 @@ add_library(li_calib_lib
         src/core/lidar_odometry.cpp
         src/core/surfel_association.cpp
         src/core/traj_manager.cpp
+        src/core/trajectory_estimator.cpp
+        src/core/basalt_traj.cpp 
 )
 target_link_libraries(li_calib_lib ${thirdparty_libraries})
 
@@ -74,6 +77,5 @@ add_executable(li_calib_gui
         test/li_calib_gui.cpp
         src/ui/calib_helper.cpp
         src/ui/calib_ui.cpp
-        src/core/traj_manager.cpp
-        src/core/trajectory_estimator.cpp)
-target_link_libraries(li_calib_gui li_calib_lib ${thirdparty_libraries} fmt::fmt)
+        )
+target_link_libraries(li_calib_gui li_calib_lib fmt::fmt)

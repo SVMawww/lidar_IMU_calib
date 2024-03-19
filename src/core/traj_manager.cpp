@@ -1,10 +1,10 @@
 // // rewrite b-spline computing using basalt
 // // libaorun 23.12.22
 
-// #include "core/traj_manager.hpp"
+#include "core/traj_manager.h"
 
 
-// namespace licalib {
+namespace licalib {
 
 // template <int N>
 // void TrajManager<N>::FeedIMUData(const IO::IMUData& imudata) {
@@ -14,7 +14,7 @@
 // template <int N>
 // void TrajManager<N>::initialSO3TrajWithGyro() {
 
-//   assert(imu_data_.size() > 0 &&
+  // assert(imu_data_.size() > 0 &&
 //     "[initialSO3TrajWithGyro]: There's NO imu data for initialization.");
   
 //   auto estimator_so3 = std::make_shared<TrajEstimator<N>>(TrajPtr, calib_param);
@@ -37,5 +37,5 @@
 // CalibParamManager::Ptr TrajManager<N>::getCalibParamManager() const {
 //   return calib_param;
 // }
-// }
+}
 

@@ -31,9 +31,10 @@ public:
     local_parameterization = new basalt::LieLocalParameterization<Sophus::SO3d>();
   }
   void addConstBiasGyroMeasurements(const std::vector<IO::IMUData>& imu_datas,
-                                                  double gyro_weight){
+                                    double gyro_weight){
   for(auto& imu_data : imu_datas){
     basalt::SplineMeta<N> spline_meta;
+
     TrajPtr->CalculateSplineMeta({{imu_data.timestamp, imu_data.timestamp}},
                                 spline_meta);
     using Functor = gyroSO3ConstBiasFactor<N>;
@@ -44,9 +45,11 @@ public:
       new ceres::DynamicAutoDiffCostFunction<Functor>(functor);
 
   // add so3 knots
+ // b /root/li_calib/src/lidar_IMU_calib/include/core/trajectory_estimator.hpp:49
     for (int i = 0; i < spline_meta.NumParameters(); i++) {
       cost_function->AddParameterBlock(4);
     }
+
     cost_function->AddParameterBlock(3);  // gyro bias
 
     cost_function->SetNumResiduals(3);
@@ -62,11 +65,32 @@ public:
 
   }
 }
-  void AddControlPoints(const basalt::SplineMeta<N>& spline_meta, std::vector<double*>& vec,
-    bool addPosKont);
+  
+void AddControlPoints(
+    const basalt::SplineMeta<N>& spline_meta, std::vector<double*>& vec,
+    bool addPosKont) {
+  for (auto const& seg : spline_meta.segments) {
+    size_t start_idx = TrajPtr->computeTIndex(seg.t0 + 1e-9).second;
+    for (size_t i = start_idx; i < (start_idx + seg.NumParameters()); ++i) {
+      if (addPosKont) {
+        vec.emplace_back(TrajPtr->getKnotPos(i).data());
+        problem_->AddParameterBlock(TrajPtr->getKnotPos(i).data(), 3);
+      } else {
+        vec.emplace_back(TrajPtr->getKnotSO3(i).data());
+        problem_->AddParameterBlock(TrajPtr->getKnotSO3(i).data(), 4,
+                                    local_parameterization);
+      }
+      // if (IsLocked() || (fixed_control_point_index_ >= 0 &&
+      //                    i <= fixed_control_point_index_)) {
+      //   problem_->SetParameterBlockConstant(vec.back());
+      // }
+    }
+  }
+}
+
   ceres::Solver::Summary Solve(int max_iterations,
-                                                      bool progress,
-                                                      int num_threads) {
+                               bool progress,
+                               int num_threads) {
   ceres::Solver::Options options;
 
   options.minimizer_type = ceres::TRUST_REGION;

@@ -54,7 +54,8 @@ CalibInterface::CalibInterface(ros::NodeHandle& nh) :
       pangolin_colors_.emplace_back(cw.GetUniqueColour());
     }
   } else {
-    Initialization();
+    // Initialization();
+    Initialize();
 
     DataAssociation();
 

@@ -24,7 +24,7 @@
 #include <ros/ros.h>
 #include <utils/eigen_utils.hpp>
 #include <core/trajectory_manager.h>
-#include <core/traj_manager.hpp>
+#include <core/traj_manager.h>
 #include <core/lidar_odometry.h>
 
 namespace licalib {

@@ -8,16 +8,18 @@
 
 template <int N=4>
 class TrajSE3 : public basalt::Se3Spline<N> {
-using so3Traj = basalt::So3Spline<N>;
+
 
 private: 
   std::shared_ptr<basalt::So3Spline<N>> so3_traj;
   std::shared_ptr<basalt::RdSpline<3, N>> r3_traj;
 
-  TrajSE3(const std::shared_ptr<TrajSE3>);
-
 public:
-    
+  TrajSE3(double time_interval, double start_time = 0, size_t segment_id = 0)
+    : basalt::Se3Spline<N, double>(time_interval, start_time) {
+    this->extendKnotsTo(start_time + 1, Sophus::SO3<double>(Eigen::Quaterniond::Identity()),
+                        Eigen::Vector3d(0, 0, 0));
+  }
   std::shared_ptr<TrajSE3> getPtrInstance();
 
   decltype(auto) EvaluatePose(double time){

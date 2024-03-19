@@ -29,6 +29,7 @@
 
 namespace licalib {
 
+
 CalibrHelper::CalibrHelper(ros::NodeHandle& nh)
         : calib_step_(Start),
           iteration_step_(0),
@@ -83,11 +84,10 @@ CalibrHelper::CalibrHelper(ros::NodeHandle& nh)
   scan4map_time_ = map_time_ + scan4map;
   double end_time = dataset_reader_->get_end_time();
 
-  traj_manager_ = std::make_shared<TrajectoryManager>(
-          map_time_, end_time, knot_distance, time_offset_padding);
+  trajectory_manager = std::make_shared<TrajManager<4>>(knot_distance);
 
   scan_undistortion_ = std::make_shared<ScanUndistortion>(
-          traj_manager_, dataset_reader_);
+          traj_manager, dataset_reader_);
 
   lidar_odom_ = std::make_shared<LiDAROdometry>(ndt_resolution_);
 
@@ -96,6 +96,74 @@ CalibrHelper::CalibrHelper(ros::NodeHandle& nh)
   surfel_association_ = std::make_shared<SurfelAssociation>(
           associated_radius_, plane_lambda_);
 }
+
+// CalibrHelper::CalibrHelper(ros::NodeHandle& nh)
+//         : calib_step_(Start),
+//           iteration_step_(0),
+//           opt_time_offset_(false),
+//           plane_lambda_(0.6),
+//           ndt_resolution_(0.5),
+//           associated_radius_(0.05) {
+//   std::string topic_lidar;
+//   double bag_start, bag_durr;
+//   double scan4map;
+//   double knot_distance;
+//   double time_offset_padding;
+
+//   nh.param<std::string>("path_bag", bag_path_, "V1_01_easy.bag");
+//   nh.param<std::string>("topic_imu", topic_imu_, "/imu0");
+//   nh.param<std::string>("topic_lidar", topic_lidar, "/velodyne_packets");
+//   nh.param<double>("bag_start", bag_start, 0);
+//   nh.param<double>("bag_durr", bag_durr, -1);
+//   nh.param<double>("scan4map", scan4map, 15);
+//   nh.param<double>("ndtResolution", ndt_resolution_, 0.5);
+//   nh.param<double>("time_offset_padding", time_offset_padding, 0.015);
+//   nh.param<double>("knot_distance", knot_distance, 0.02);
+
+//   if (!createCacheFolder(bag_path_)) {
+//     calib_step_ = Error;
+//   }
+
+//   {
+//     std::string lidar_model;
+//     nh.param<std::string>("LidarModel", lidar_model, "VLP_16");
+//     IO::LidarModelType lidar_model_type = IO::LidarModelType::VLP_16;
+//     if (lidar_model == "VLP_16") {
+//       lidar_model_type = IO::LidarModelType::VLP_16;
+//     } else {
+//       calib_step_ = Error;
+//       ROS_WARN("LiDAR model %s not support yet.", lidar_model.c_str());
+//     }
+//     /// read dataset
+
+//     IO::LioDataset lio_dataset_temp(lidar_model_type);
+//     // dataset_reader_ = std::make_shared<IO::LioDataset>(lidar_model_type);
+
+//     lio_dataset_temp.read(bag_path_, topic_imu_, topic_lidar, bag_start, bag_durr);
+//     dataset_reader_ = lio_dataset_temp.get_data();
+    
+//     // dataset_reader_->read(bag_path_, topic_imu_, topic_lidar);
+
+//     dataset_reader_->adjustDataset();
+//   }
+
+//   map_time_ = dataset_reader_->get_start_time();
+//   scan4map_time_ = map_time_ + scan4map;
+//   double end_time = dataset_reader_->get_end_time();
+
+//   traj_manager_ = std::make_shared<TrajectoryManager>(
+//           map_time_, end_time, knot_distance, time_offset_padding);
+
+//   scan_undistortion_ = std::make_shared<ScanUndistortion>(
+//           traj_manager_, dataset_reader_);
+
+//   lidar_odom_ = std::make_shared<LiDAROdometry>(ndt_resolution_);
+
+//   rotation_initializer_ = std::make_shared<InertialInitializer>();
+
+//   surfel_association_ = std::make_shared<SurfelAssociation>(
+//           associated_radius_, plane_lambda_);
+// }
 
 bool CalibrHelper::createCacheFolder(const std::string& bag_path) {
   boost::filesystem::path p(bag_path);
@@ -113,9 +181,9 @@ void CalibrHelper::Initialization() {
     return;
   }
   for (const auto& imu_data: dataset_reader_->get_imu_data()) {
-    traj_manager_->feedIMUData(imu_data);
+    traj_manager->FeedIMUData(imu_data);
   }
-  traj_manager_->initialSO3TrajWithGyro();
+  traj_manager->initialSO3TrajWithGyro();
 
   for(const TPointCloud& raw_scan: dataset_reader_->get_scan_data()) {
     VPointCloud::Ptr cloud(new VPointCloud);
@@ -127,10 +195,10 @@ void CalibrHelper::Initialization() {
     if (lidar_odom_->get_odom_data().size() < 30
         || (lidar_odom_->get_odom_data().size() % 10 != 0))
       continue;
-    if (rotation_initializer_->EstimateRotation(traj_manager_,
+    if (rotation_initializer_->estimateRotation(traj_manager,
                                                 lidar_odom_->get_odom_data())) {
       Eigen::Quaterniond qItoLidar = rotation_initializer_->getQ_ItoS();
-      traj_manager_->getCalibParamManager()->set_q_LtoI(qItoLidar.conjugate());
+      traj_manager->getCalibParamManager()->set_q_LtoI(qItoLidar.conjugate());
 
       Eigen::Vector3d euler_ItoL = qItoLidar.toRotationMatrix().eulerAngles(0,1,2);
       std::cout << "[Initialization] Done. Euler_ItoL initial degree: "
@@ -148,18 +216,22 @@ void CalibrHelper::Initialize() {
     ROS_WARN("[Initialization] Need status: Start.");
     return;
   }
-  for (const auto& imu_data: dataset_reader_->get_imu_data()) {
-    trajectory_manager->FeedIMUData(imu_data);
-  }
-  trajectory_manager->initialSO3TrajWithGyro();
 
+  for (const auto& imu_data: dataset_reader_->get_imu_data()) {
+
+    trajectory_manager->FeedIMUData(imu_data);
+
+  }
+
+  trajectory_manager->initialSO3TrajWithGyro();
+  std::cout << BLUE << "HERE 1" << RESET << std::endl;
   for(const TPointCloud& raw_scan: dataset_reader_->get_scan_data()) {
     VPointCloud::Ptr cloud(new VPointCloud);
     TPointCloud2VPointCloud(raw_scan.makeShared(), cloud);
     double scan_timestamp = pcl_conversions::fromPCL(raw_scan.header.stamp).toSec();
-
+std::cout << BLUE << "HERE 4" << RESET << std::endl;
     lidar_odom_->feedScan(scan_timestamp, cloud);
-
+std::cout << BLUE << "HERE 3" << RESET << std::endl;
     if (lidar_odom_->get_odom_data().size() < 30
         || (lidar_odom_->get_odom_data().size() % 10 != 0))
       continue;
@@ -167,7 +239,7 @@ void CalibrHelper::Initialize() {
                                                 lidar_odom_->get_odom_data())) {
       Eigen::Quaterniond qItoLidar = rotation_initializer_->getQ_ItoS();
       trajectory_manager->getCalibParamManager()->set_q_LtoI(qItoLidar.conjugate());
-
+std::cout << BLUE << "HERE 1" << RESET << std::endl;
       Eigen::Vector3d euler_ItoL = qItoLidar.toRotationMatrix().eulerAngles(0,1,2);
       std::cout << "[Initialization] Done. Euler_ItoL initial degree: "
                 << (euler_ItoL*180.0/M_PI).transpose() << std::endl;

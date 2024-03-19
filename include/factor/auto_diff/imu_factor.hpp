@@ -27,16 +27,15 @@ class gyroSO3ConstBiasFactor : public basalt::CeresSplineHelper<_N> {
   template <class T>
   bool operator()(const T* const* sKnots, T* sResiduals) const {
     using Tangent = typename Sophus::SO3<T>::Tangent;
-
     Eigen::Map<Tangent> residuals(sResiduals);
-
+    Sophus::SO3<T> temp;
     size_t R_offset;  // should be zero if not estimate time offset
     double u;
     spline_meta_.ComputeSplineIndex(imu_data_.timestamp, R_offset, u);
 
     Tangent rot_vel;
     basalt::CeresSplineHelper<_N>::template evaluate_lie<T, Sophus::SO3>(
-        sKnots + R_offset, u, inv_dt_, nullptr, &rot_vel, 
+        sKnots + R_offset, u, inv_dt_, &temp, &rot_vel, 
         nullptr, nullptr);
 
     size_t Kont_offset = spline_meta_.NumParameters();

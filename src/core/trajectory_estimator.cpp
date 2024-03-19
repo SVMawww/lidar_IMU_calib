@@ -3,7 +3,7 @@
 
 #include "core/trajectory_estimator.hpp"
 
-
+ 
 namespace licalib {
 //   template<int N>
 // // modify from AddIMUGyroMeasurement
@@ -40,28 +40,28 @@ namespace licalib {
 //   }
 // }
 
-template <int N>
-void TrajEstimator<N>::AddControlPoints(
-    const basalt::SplineMeta<N>& spline_meta, std::vector<double*>& vec,
-    bool addPosKont) {
-  for (auto const& seg : spline_meta.segments) {
-    size_t start_idx = TrajPtr->computeTIndex(seg.t0 + 1e-9).second;
-    for (size_t i = start_idx; i < (start_idx + seg.NumParameters()); ++i) {
-      if (addPosKont) {
-        vec.emplace_back(TrajPtr->getKnotPos(i).data());
-        problem_->AddParameterBlock(TrajPtr->getKnotPos(i).data(), 3);
-      } else {
-        vec.emplace_back(TrajPtr->getKnotSO3(i).data());
-        problem_->AddParameterBlock(TrajPtr->getKnotSO3(i).data(), 4,
-                                    local_parameterization);
-      }
-      // if (IsLocked() || (fixed_control_point_index_ >= 0 &&
-      //                    i <= fixed_control_point_index_)) {
-      //   problem_->SetParameterBlockConstant(vec.back());
-      // }
-    }
-  }
-}
+// template <int N>
+// void TrajEstimator<N>::AddControlPoints(
+//     const basalt::SplineMeta<N>& spline_meta, std::vector<double*>& vec,
+//     bool addPosKont) {
+//   for (auto const& seg : spline_meta.segments) {
+//     size_t start_idx = TrajPtr->computeTIndex(seg.t0 + 1e-9).second;
+//     for (size_t i = start_idx; i < (start_idx + seg.NumParameters()); ++i) {
+//       if (addPosKont) {
+//         vec.emplace_back(TrajPtr->getKnotPos(i).data());
+//         problem_->AddParameterBlock(TrajPtr->getKnotPos(i).data(), 3);
+//       } else {
+//         vec.emplace_back(TrajPtr->getKnotSO3(i).data());
+//         problem_->AddParameterBlock(TrajPtr->getKnotSO3(i).data(), 4,
+//                                     local_parameterization);
+//       }
+//       // if (IsLocked() || (fixed_control_point_index_ >= 0 &&
+//       //                    i <= fixed_control_point_index_)) {
+//       //   problem_->SetParameterBlockConstant(vec.back());
+//       // }
+//     }
+//   }
+// }
 
 
 // template <int N>
