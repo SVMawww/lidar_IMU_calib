@@ -40,7 +40,7 @@ CalibrHelper::CalibrHelper(ros::NodeHandle& nh)
   std::string topic_lidar;
   double bag_start, bag_durr;
   double scan4map;
-  double knot_distance;
+  double knot_distance = 0.02;
   double time_offset_padding;
 
   nh.param<std::string>("path_bag", bag_path_, "V1_01_easy.bag");
@@ -52,7 +52,7 @@ CalibrHelper::CalibrHelper(ros::NodeHandle& nh)
   nh.param<double>("ndtResolution", ndt_resolution_, 0.5);
   nh.param<double>("time_offset_padding", time_offset_padding, 0.015);
   nh.param<double>("knot_distance", knot_distance, 0.02);
-
+  nh.param<double>("start_time", start_time, 1581318748.3525);
   if (!createCacheFolder(bag_path_)) {
     calib_step_ = Error;
   }
@@ -84,7 +84,7 @@ CalibrHelper::CalibrHelper(ros::NodeHandle& nh)
   scan4map_time_ = map_time_ + scan4map;
   double end_time = dataset_reader_->get_end_time();
 
-  trajectory_manager = std::make_shared<TrajManager<4>>(knot_distance);
+  trajectory_manager = std::make_shared<TrajManager<4>>(knot_distance, map_time_);
 
   scan_undistortion_ = std::make_shared<ScanUndistortion>(
           traj_manager, dataset_reader_);
@@ -175,43 +175,43 @@ bool CalibrHelper::createCacheFolder(const std::string& bag_path) {
   return true;
 }
 
+// void CalibrHelper::Initialization() {
+//   if (Start != calib_step_) {
+//     ROS_WARN("[Initialization] Need status: Start.");
+//     return;
+//   }
+//   for (const auto& imu_data: dataset_reader_->get_imu_data()) {
+//     traj_manager->FeedIMUData(imu_data);
+//   }
+//   traj_manager->initialSO3TrajWithGyro();
+
+//   for(const TPointCloud& raw_scan: dataset_reader_->get_scan_data()) {
+//     VPointCloud::Ptr cloud(new VPointCloud);
+//     TPointCloud2VPointCloud(raw_scan.makeShared(), cloud);
+//     double scan_timestamp = pcl_conversions::fromPCL(raw_scan.header.stamp).toSec();
+
+//     lidar_odom_->feedScan(scan_timestamp, cloud);
+
+//     if (lidar_odom_->get_odom_data().size() < 30
+//         || (lidar_odom_->get_odom_data().size() % 10 != 0))
+//       continue;
+//     if (rotation_initializer_->estimateRotation(traj_manager,
+//                                                 lidar_odom_->get_odom_data())) {
+//       Eigen::Quaterniond qItoLidar = rotation_initializer_->getQ_ItoS();
+//       traj_manager->getCalibParamManager()->set_q_LtoI(qItoLidar.conjugate());
+
+//       Eigen::Vector3d euler_ItoL = qItoLidar.toRotationMatrix().eulerAngles(0,1,2);
+//       std::cout << "[Initialization] Done. Euler_ItoL initial degree: "
+//                 << (euler_ItoL*180.0/M_PI).transpose() << std::endl;
+//       calib_step_ = InitializationDone;
+//       break;
+//     }
+//   }
+//   if (calib_step_ != InitializationDone)
+//     ROS_WARN("[Initialization] fails.");
+// }
+
 void CalibrHelper::Initialization() {
-  if (Start != calib_step_) {
-    ROS_WARN("[Initialization] Need status: Start.");
-    return;
-  }
-  for (const auto& imu_data: dataset_reader_->get_imu_data()) {
-    traj_manager->FeedIMUData(imu_data);
-  }
-  traj_manager->initialSO3TrajWithGyro();
-
-  for(const TPointCloud& raw_scan: dataset_reader_->get_scan_data()) {
-    VPointCloud::Ptr cloud(new VPointCloud);
-    TPointCloud2VPointCloud(raw_scan.makeShared(), cloud);
-    double scan_timestamp = pcl_conversions::fromPCL(raw_scan.header.stamp).toSec();
-
-    lidar_odom_->feedScan(scan_timestamp, cloud);
-
-    if (lidar_odom_->get_odom_data().size() < 30
-        || (lidar_odom_->get_odom_data().size() % 10 != 0))
-      continue;
-    if (rotation_initializer_->estimateRotation(traj_manager,
-                                                lidar_odom_->get_odom_data())) {
-      Eigen::Quaterniond qItoLidar = rotation_initializer_->getQ_ItoS();
-      traj_manager->getCalibParamManager()->set_q_LtoI(qItoLidar.conjugate());
-
-      Eigen::Vector3d euler_ItoL = qItoLidar.toRotationMatrix().eulerAngles(0,1,2);
-      std::cout << "[Initialization] Done. Euler_ItoL initial degree: "
-                << (euler_ItoL*180.0/M_PI).transpose() << std::endl;
-      calib_step_ = InitializationDone;
-      break;
-    }
-  }
-  if (calib_step_ != InitializationDone)
-    ROS_WARN("[Initialization] fails.");
-}
-
-void CalibrHelper::Initialize() {
   if (Start != calib_step_) {
     ROS_WARN("[Initialization] Need status: Start.");
     return;
@@ -251,6 +251,51 @@ std::cout << BLUE << "HERE 1" << RESET << std::endl;
     ROS_WARN("[Initialization] fails.");
 }
 
+
+// void CalibrHelper::DataAssociation() {
+//   std::cout << "[Association] start ...." << std::endl;
+//   TicToc timer;
+//   timer.tic();
+
+//   /// set surfel pap
+//   if (InitializationDone == calib_step_ ) {
+//     Mapping();
+//     scan_undistortion_->undistortScanInMap(lidar_odom_->get_odom_data());
+
+//     surfel_association_->setSurfelMap(lidar_odom_->getNDTPtr(), map_time_);
+//   } else if (BatchOptimizationDone == calib_step_ || RefineDone == calib_step_) {
+//     scan_undistortion_->undistortScanInMap();
+
+//     plane_lambda_ = 0.7;
+//     surfel_association_->setPlaneLambda(plane_lambda_);
+//     auto ndt_omp = LiDAROdometry::ndtInit(ndt_resolution_);
+//     ndt_omp->setInputTarget(scan_undistortion_->get_map_cloud());
+//     surfel_association_->setSurfelMap(ndt_omp, map_time_);
+//   } else {
+//       ROS_WARN("[DataAssociation] Please follow the step.");
+//       return;
+//   }
+
+//   /// get association
+//   for (auto const &scan_raw : dataset_reader_->get_scan_data()) {
+//     auto iter = scan_undistortion_->get_scan_data_in_map().find(
+//             scan_raw.header.stamp);
+//     if (iter == scan_undistortion_->get_scan_data_in_map().end()) {
+//       continue;
+//     }
+//     surfel_association_->getAssociation(iter->second, scan_raw.makeShared(), 2);
+//   }
+//   surfel_association_->averageTimeDownSmaple();
+//   std::cout << "Surfel point number: "
+//             << surfel_association_->get_surfel_points().size() << std::endl;
+//   std::cout<<GREEN<<"[Association] "<<timer.toc()<<" ms"<<RESET<<std::endl;
+
+//   if (surfel_association_->get_surfel_points().size() > 10){
+//     calib_step_ = DataAssociationDone;
+//   } else {
+//     ROS_WARN("[DataAssociation] fails.");
+//   }
+// }
 
 void CalibrHelper::DataAssociation() {
   std::cout << "[Association] start ...." << std::endl;

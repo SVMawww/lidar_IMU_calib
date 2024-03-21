@@ -48,7 +48,7 @@ void TrajectoryManager::initialSO3TrajWithGyro() {
 
   addGyroscopeMeasurements(estimator_SO3);
 
-  /// fix the initial pose of trajectory
+  // fix the initial pose of trajectory
   double weight_t0 = calib_param_manager->global_opt_gyro_weight;
   double t0 = traj_->SO3Spline()->MinTime();
   //Eigen::Quaterniond q0 = Eigen::Quaterniond::Identity();

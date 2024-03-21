@@ -7,12 +7,14 @@
     <arg name="scan4map"            default="15" />
     <arg name="lidar_model"         default="VLP_16" />
     <arg name="ndtResolution"       default="0.5" /> <!-- 0.5 for indoor case and 1.0 for outdoor case -->
+    
+    <arg name="start_time"         default="1581318748.3525" />
 
     <arg name="time_offset_padding" default="0.015" />
     <arg name="show_ui"    default="false" />
 
-    <node pkg="li_calib" type="li_calib_gui" name="li_calib_gui" output="screen" launch-prefix="xterm -e gdb &#45;&#45;args">
-    <!-- <node pkg="li_calib" type="li_calib_gui" name="li_calib_gui" output="screen"> -->
+    <!-- <node pkg="li_calib" type="li_calib_gui" name="li_calib_gui" output="screen" launch-prefix="xterm -e gdb &#45;&#45;args"> -->
+    <node pkg="li_calib" type="li_calib_gui" name="li_calib_gui" output="screen">
    
         <param name="topic_imu"         type="string"   value="$(arg topic_imu)" />
         <param name="topic_lidar"       type="string"   value="/velodyne_packets" />

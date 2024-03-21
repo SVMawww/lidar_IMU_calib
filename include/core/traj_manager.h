@@ -23,8 +23,8 @@ private:
 public:
   
   using Ptr = std::shared_ptr<TrajManager<4>>;
-  TrajManager(int interval) : map_time_(0) {
-    TrajPtr = std::make_shared<TrajSE3<4>>(interval);
+  TrajManager(double interval, double start_time) : map_time_(0) {
+    TrajPtr = std::make_shared<TrajSE3<4>>(interval, start_time);
     calib_param = std::make_shared<CalibParamManager>();
   }
 

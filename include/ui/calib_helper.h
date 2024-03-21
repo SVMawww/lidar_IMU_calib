@@ -87,6 +87,7 @@ protected:
   double map_time_;
   double ndt_resolution_;
   double scan4map_time_;
+  double start_time;
 
   /// data association
   double associated_radius_;

@@ -29,7 +29,7 @@ bag_durr=30
 scan4map=15
 timeOffsetPadding=0.015
 
-show_ui=false  #false
+show_ui=true  #false
 
 bag_count=-1
 sync_bag_name=(${outdoor_sync_bag_name[*]} ${indoor_sync_bag_name[*]})

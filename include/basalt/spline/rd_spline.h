@@ -163,7 +163,7 @@ class RdSpline {
 
     BASALT_ASSERT_STREAM(s >= 0, "s " << s);
     BASALT_ASSERT_STREAM(size_t(s + N) <= knots.size(),
-            "s " << s << " N " << N << " knots.size() " << knots.size());
+            "\ns " << s << " N " << N << " knots.size() " << knots.size());
     return std::make_pair(u, s);
   }
 
