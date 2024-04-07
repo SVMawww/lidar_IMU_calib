@@ -67,9 +67,10 @@ add_library(li_calib_lib
         src/core/inertial_initializer.cpp
         src/core/lidar_odometry.cpp
         src/core/surfel_association.cpp
-        src/core/traj_manager.cpp
+        # src/core/traj_manager.cpp
         src/core/trajectory_estimator.cpp
         src/core/basalt_traj.cpp 
+
 )
 target_link_libraries(li_calib_lib ${thirdparty_libraries})
 

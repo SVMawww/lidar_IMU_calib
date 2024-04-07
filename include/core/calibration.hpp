@@ -41,7 +41,7 @@ public:
           p_LinI(Eigen::Vector3d(0,0,0)) ,
           q_LtoI(Eigen::Quaterniond::Identity()),
           gravity(Eigen::Vector3d(0, 0, -9.8)),
-          time_offset(0),
+          time_offset(new double(0)),
           gyro_bias(Eigen::Vector3d(0,0,0)),
           acce_bias(Eigen::Vector3d(0,0,0)) {
 
@@ -76,7 +76,7 @@ public:
   }
 
   void set_time_offset(double t) {
-    time_offset = t;
+    *time_offset = t;
   }
 
   void set_gyro_bias(Eigen::Vector3d gb) {
@@ -100,7 +100,7 @@ public:
     std::cout << "euler_LtoI  : " << euler_LtoI.transpose() << std::endl;
     std::cout << "P_IinL      : " << p_IinL.transpose() << std::endl;
     std::cout << "euler_ItoL  : " << euler_ItoL.transpose() << std::endl;
-    std::cout << "time offset : " << time_offset << std::endl;
+    std::cout << "time offset : " << *time_offset << std::endl;
     std::cout << "gravity     : " << gravity.transpose() << std::endl;
     std::cout << "acce bias   : " << acce_bias.transpose() << std::endl;
     std::cout << "gyro bias   : " << gyro_bias.transpose() << std::endl;
@@ -115,7 +115,7 @@ public:
     outfile << info << ","
             << p_IinL(0) << "," << p_IinL(1) << "," << p_IinL(2) << ","
             << q_ItoL.x() << "," << q_ItoL.y() << "," << q_ItoL.z() << "," << q_ItoL.w() << ","
-            << time_offset << "," << gravity(0) << "," << gravity(1) << "," << gravity(2) << ","
+            << *time_offset << "," << gravity(0) << "," << gravity(1) << "," << gravity(2) << ","
             << gyro_bias(0) << "," << gyro_bias(1) << "," <<gyro_bias(2) << ","
             << acce_bias(0) << "," << acce_bias(1) << "," <<acce_bias(2) << "\n";
     outfile.close();
@@ -128,7 +128,7 @@ public:
 
   Eigen::Vector3d gravity;
 
-  double time_offset;
+  double* time_offset;
 
   Eigen::Vector3d gyro_bias;
 

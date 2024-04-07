@@ -56,7 +56,7 @@ CalibInterface::CalibInterface(ros::NodeHandle& nh) :
   } else {
     Initialization();
 
-    DataAssociation();
+    DataAssociation(); //  b /root/li_calib/src/lidar_IMU_calib/src/ui/calib_ui.cpp:60
 
     BatchOptimization();
 
@@ -215,5 +215,5 @@ void CalibInterface::showCalibResult() {
   show_gravity_ = g;
   show_acce_bias_ = ab;
   show_gyro_bias_ = gb;
-  show_time_offset_ = v->time_offset;
+  show_time_offset_ = *v->time_offset;
 }

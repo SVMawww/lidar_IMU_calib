@@ -83,11 +83,17 @@ public:
       if (iter == scan_data_.end()) {
         continue;
       }
+      if(idx >= odom_data.size()) {
+        std::cout << "passing idx: " << idx << '\n';
+        continue;
+      };
       VPointCloud::Ptr scan_inMap = VPointCloud::Ptr(new VPointCloud);
+      
       pcl::transformPointCloud(*(iter->second), *scan_inMap, odom_data.at(idx).pose);
       scan_data_in_map_.insert({scan_raw.header.stamp, scan_inMap});
       *map_cloud_ += *scan_inMap;
     }
+    std::cout << "[undistortScanInMap Done]\n";
   }
 
   const std::map<pcl::uint64_t, VPointCloud::Ptr> &get_scan_data() const {

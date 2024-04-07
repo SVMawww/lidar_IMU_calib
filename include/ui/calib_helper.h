@@ -96,7 +96,7 @@ protected:
   std::shared_ptr<IO::LioDataset> dataset_reader_;
   InertialInitializer::Ptr rotation_initializer_;
   TrajectoryManager::Ptr traj_manager_;
-  TrajManager<>::Ptr traj_manager;
+
   TrajManager<4>::Ptr trajectory_manager;
   LiDAROdometry::Ptr lidar_odom_;
   SurfelAssociation::Ptr surfel_association_;

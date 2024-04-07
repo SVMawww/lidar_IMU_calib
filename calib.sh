@@ -28,8 +28,8 @@ bag_start=1
 bag_durr=30
 scan4map=15
 timeOffsetPadding=0.015
-
-show_ui=true  #false
+start_time=1581318749
+show_ui=false  #false
 
 bag_count=-1
 sync_bag_name=(${outdoor_sync_bag_name[*]} ${indoor_sync_bag_name[*]})
@@ -58,6 +58,7 @@ for i in "${!sync_bag_name[@]}"; do
                           lidar_model:="VLP_16" \
                           time_offset_padding:="${timeOffsetPadding}"\
                           ndtResolution:="${ndtResolution}" \
-                          show_ui:="${show_ui}"
+                          show_ui:="${show_ui}" \
+                          start_time:="${start_time}"
     done
 done

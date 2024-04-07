@@ -87,7 +87,7 @@ CalibrHelper::CalibrHelper(ros::NodeHandle& nh)
   trajectory_manager = std::make_shared<TrajManager<4>>(knot_distance, map_time_);
 
   scan_undistortion_ = std::make_shared<ScanUndistortion>(
-          traj_manager, dataset_reader_);
+          trajectory_manager, dataset_reader_);
 
   lidar_odom_ = std::make_shared<LiDAROdometry>(ndt_resolution_);
 
@@ -224,14 +224,14 @@ void CalibrHelper::Initialization() {
   }
 
   trajectory_manager->initialSO3TrajWithGyro();
-  std::cout << BLUE << "HERE 1" << RESET << std::endl;
+
   for(const TPointCloud& raw_scan: dataset_reader_->get_scan_data()) {
     VPointCloud::Ptr cloud(new VPointCloud);
     TPointCloud2VPointCloud(raw_scan.makeShared(), cloud);
     double scan_timestamp = pcl_conversions::fromPCL(raw_scan.header.stamp).toSec();
-std::cout << BLUE << "HERE 4" << RESET << std::endl;
+
     lidar_odom_->feedScan(scan_timestamp, cloud);
-std::cout << BLUE << "HERE 3" << RESET << std::endl;
+
     if (lidar_odom_->get_odom_data().size() < 30
         || (lidar_odom_->get_odom_data().size() % 10 != 0))
       continue;
@@ -239,10 +239,11 @@ std::cout << BLUE << "HERE 3" << RESET << std::endl;
                                                 lidar_odom_->get_odom_data())) {
       Eigen::Quaterniond qItoLidar = rotation_initializer_->getQ_ItoS();
       trajectory_manager->getCalibParamManager()->set_q_LtoI(qItoLidar.conjugate());
-std::cout << BLUE << "HERE 1" << RESET << std::endl;
+
       Eigen::Vector3d euler_ItoL = qItoLidar.toRotationMatrix().eulerAngles(0,1,2);
       std::cout << "[Initialization] Done. Euler_ItoL initial degree: "
                 << (euler_ItoL*180.0/M_PI).transpose() << std::endl;
+      trajectory_manager->getTrajPtr()->print_knots();
       calib_step_ = InitializationDone;
       break;
     }
@@ -342,6 +343,22 @@ void CalibrHelper::DataAssociation() {
   }
 }
 
+// void CalibrHelper::BatchOptimization() {
+//   if (DataAssociationDone != calib_step_) {
+//     ROS_WARN("[BatchOptimization] Need status: DataAssociationDone.");
+//     return;
+//   }
+//   std::cout << "\n================ Iteration " << iteration_step_ << " ==================\n";
+
+//   TicToc timer;
+//   timer.tic();
+//   traj_manager_->trajInitFromSurfel(surfel_association_, opt_time_offset_);
+
+//   calib_step_ = BatchOptimizationDone;
+//   saveCalibResult(cache_path_ + "/calib_result.csv");
+//   std::cout<<GREEN<<"[BatchOptimization] "<<timer.toc()<<" ms"<<RESET<<std::endl;
+// }
+
 void CalibrHelper::BatchOptimization() {
   if (DataAssociationDone != calib_step_) {
     ROS_WARN("[BatchOptimization] Need status: DataAssociationDone.");
@@ -351,7 +368,7 @@ void CalibrHelper::BatchOptimization() {
 
   TicToc timer;
   timer.tic();
-  traj_manager_->trajInitFromSurfel(surfel_association_, opt_time_offset_);
+  trajectory_manager->trajInitFromSurfel(surfel_association_, opt_time_offset_);
 
   calib_step_ = BatchOptimizationDone;
   saveCalibResult(cache_path_ + "/calib_result.csv");
@@ -374,12 +391,41 @@ void CalibrHelper::Refinement() {
   TicToc timer;
   timer.tic();
 
-  traj_manager_->trajInitFromSurfel(surfel_association_, opt_time_offset_);
+  trajectory_manager->trajInitFromSurfel(surfel_association_, opt_time_offset_);
   calib_step_ = RefineDone;
   saveCalibResult(cache_path_ + "/calib_result.csv");
 
   std::cout<<GREEN<<"[Refinement] "<<timer.toc()<<" ms"<<RESET<<std::endl;
 }
+
+// void CalibrHelper::Mapping(bool relocalization) {
+//   bool update_map = true;
+//   if (relocalization) {
+//     lidar_odom_->clearOdomData();
+//     update_map = false;
+//   } else {
+//     scan_undistortion_->undistortScan();
+//     lidar_odom_ = std::make_shared<LiDAROdometry>(ndt_resolution_);
+//   }
+
+//   double last_scan_t = 0;
+//   for (const auto& scan_raw: dataset_reader_->get_scan_data()) {
+//     double scan_t = pcl_conversions::fromPCL(scan_raw.header.stamp).toSec();
+//     if (scan_t > scan4map_time_)
+//       update_map = false;
+//     auto iter = scan_undistortion_->get_scan_data().find(scan_raw.header.stamp);
+//     if (iter != scan_undistortion_->get_scan_data().end()) {
+//       Eigen::Matrix4d pose_predict = Eigen::Matrix4d::Identity();
+//       Eigen::Quaterniond q_L2toL1 = Eigen::Quaterniond::Identity();
+//       if (last_scan_t > 0 &&
+//           traj_manager_->evaluateLidarRelativeRotation(last_scan_t, scan_t, q_L2toL1)) {
+//         pose_predict.block<3,3>(0,0) = q_L2toL1.toRotationMatrix();
+//       }
+//       lidar_odom_->feedScan(scan_t, iter->second, pose_predict, update_map);
+//       last_scan_t = scan_t;
+//     }
+//   }
+// }
 
 void CalibrHelper::Mapping(bool relocalization) {
   bool update_map = true;
@@ -401,15 +447,15 @@ void CalibrHelper::Mapping(bool relocalization) {
       Eigen::Matrix4d pose_predict = Eigen::Matrix4d::Identity();
       Eigen::Quaterniond q_L2toL1 = Eigen::Quaterniond::Identity();
       if (last_scan_t > 0 &&
-          traj_manager_->evaluateLidarRelativeRotation(last_scan_t, scan_t, q_L2toL1)) {
+          trajectory_manager->evaluateLidarRelativeRotation(last_scan_t, scan_t, q_L2toL1)) {
         pose_predict.block<3,3>(0,0) = q_L2toL1.toRotationMatrix();
       }
       lidar_odom_->feedScan(scan_t, iter->second, pose_predict, update_map);
       last_scan_t = scan_t;
     }
   }
+  std::cout << "[Mapping Done]\n";
 }
-
 
 void CalibrHelper::saveCalibResult(const std::string& calib_result_file) const {
   if (!boost::filesystem::exists(calib_result_file)) {
@@ -435,7 +481,7 @@ void CalibrHelper::saveCalibResult(const std::string& calib_result_file) const {
   std::string info;
   ss >> info;
 
-  traj_manager_->getCalibParamManager()->save_result(calib_result_file, info);
+  trajectory_manager->getCalibParamManager()->save_result(calib_result_file, info);
 }
 
 void CalibrHelper::saveMap() const {
