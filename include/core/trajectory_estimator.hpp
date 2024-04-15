@@ -112,7 +112,7 @@ public:
 
       cost_function->AddParameterBlock(3);  // gyro bias
       cost_function->AddParameterBlock(3);  // acce bias
-      cost_function->AddParameterBlock(2);  // g_refine
+      // cost_function->AddParameterBlock(3);  // g_refine
 
       cost_function->SetNumResiduals(6);
 
@@ -122,10 +122,10 @@ public:
         
       vec.emplace_back(calib_param_->gyro_bias.data());
       vec.emplace_back(calib_param_->acce_bias.data());
-      vec.emplace_back(calib_param_->gravity.data());
+      // vec.emplace_back(calib_param_->gravity.data());
       problem_->AddParameterBlock(calib_param_->gyro_bias.data(), 3);
       problem_->AddParameterBlock(calib_param_->acce_bias.data(), 3);
-      problem_->AddParameterBlock(calib_param_->gravity.data(), 2);
+      // problem_->AddParameterBlock(calib_param_->gravity.data(), 3);
 
       problem_->AddResidualBlock(cost_function, nullptr, vec);
 
@@ -157,7 +157,7 @@ public:
 
       cost_function->AddParameterBlock(3); // vector3
       cost_function->AddParameterBlock(4); // quaternion
-      cost_function->AddParameterBlock(1); // time_offset
+      // cost_function->AddParameterBlock(1); // time_offset
 
       cost_function->AddParameterBlock(3); // plane param
       
@@ -195,24 +195,15 @@ public:
   }
 
   void addSurfParams(double* plane, std::vector<double*>& vec) {
-    // vec.emplace_back(lidar_->relative_position());
-    // vec.emplace_back(lidar_->relative_orientation());
-    // vec.emplace_back(lidar_->time_offset());
-// 
-    // problem_->AddParameterBlock(lidar_->relative_position(), 3);
-    // problem_->AddParameterBlock(lidar_->relative_orientation(),  4);
-    // problem_->AddParameterBlock(lidar_->time_offset(), 1);
-// 
-    // vec.emplace_back(plane);
-// 
-    // problem_->AddParameterBlock(plane, 3);
+
+
     vec.emplace_back(calib_param_->p_LinI.data());
     vec.emplace_back(calib_param_->q_LtoI.coeffs().data());
-    vec.emplace_back(calib_param_->time_offset);
+    // vec.emplace_back(calib_param_->time_offset);
 
     problem_->AddParameterBlock(calib_param_->p_LinI.data(), 3);
     problem_->AddParameterBlock(calib_param_->q_LtoI.coeffs().data(), 4);
-    problem_->AddParameterBlock(calib_param_->time_offset, 1);
+    // problem_->AddParameterBlock(calib_param_->time_offset, 1);
 
     vec.emplace_back(plane);
     problem_->AddParameterBlock(plane, 3);

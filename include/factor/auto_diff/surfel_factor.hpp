@@ -36,40 +36,21 @@ surfelFactorWithRelative(// std::shared_ptr<Lidar> inputlidar, //size_t splineme
 
 template <typename T>
 bool operator()(const T* const* params, T* residual) const {
-
-  size_t offset = 0;
-
-  // offset += 2 * spline_meta__NumParameters;
-  // offset += 3; // gyro bias, accel bias, g_refine
-
-  auto lidar_params = params[offset];
-
-  // offset += lidar_->NumParameters(); 
-  offset += 3;
-  // 3,one for vector3, one for quaternion, one for time_offset
-  const T* plane = params[offset];
-
-  Eigen::Map<Eigen::Matrix<T,1,1>> r(residual);
-  r = this->reprojectError(lidar_params, plane);
-  return true;
-}
-
-// TODO: add lidar time_offset
-template <typename T>
-Eigen::Matrix<T, 1, 1> reprojectError(const T* lidar_param, const T* plane_cp) const {
   auto T_I0toG = T_I0toG_.cast<T>();
   auto T_IktoG = T_IktoG_.cast<T>();
+  size_t offset = 0;
+
+  auto lidar_param = params[offset];
   Eigen::Matrix<T, 3, 1> p_LinI = Eigen::Map<const Eigen::Matrix<T, 3, 1>>(lidar_param);
   Eigen::Quaternion<T> q_LtoI = Eigen::Map<const Eigen::Quaternion<T>>(lidar_param+1);
-  // const Eigen::Matrix<T, 3, 1> p_LinI(lidar_param);
-  // const Eigen::Quaternion<T> q_LtoI(lidar_param+1);
-
   Eigen::Matrix<T, 3, 1> p_Lk = lidar_point_.cast<T>();
   Eigen::Matrix<T, 3, 1> p_I = q_LtoI * p_Lk + p_LinI;
-
   Eigen::Matrix<T, 3, 1> p_temp = T_I0toG.so3().unit_quaternion().conjugate()*(T_IktoG.so3().unit_quaternion() * p_I + T_IktoG.translation() - T_I0toG.translation());
   Eigen::Matrix<T, 3, 1> p_M = q_LtoI.conjugate() * (p_temp - p_LinI);
-
+  offset += 2;
+  // 3,one for vector3, one for quaternion, one for time_offset
+  // time_offset deleted, now 2
+  const T* plane_cp = params[offset];
   Eigen::Matrix<T,3,1> Pi = Eigen::Map<const Eigen::Matrix<T,3,1>>(plane_cp);
   T plane_d = T(Pi.norm());
   T plane_norm[3];
@@ -78,8 +59,11 @@ Eigen::Matrix<T, 1, 1> reprojectError(const T* lidar_param, const T* plane_cp) c
   plane_norm[2] = T(Pi[2])/plane_d;
 
   T dist = ceres::DotProduct(plane_norm, p_M.data()) - plane_d;
-  Eigen::Matrix<T, 1, 1> error(dist);
-  return T(weight_) * error;
+  Eigen::Map<Eigen::Matrix<T,1,1>> r(residual);
+  Eigen::Matrix<T, 1, 1> error;
+  error[0] = dist;
+  r = T(weight_) * error;
+  return true;
 }
 
 };

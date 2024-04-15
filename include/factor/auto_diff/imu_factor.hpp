@@ -11,20 +11,6 @@
 
 namespace licalib {
 
-static const double GRAVITY_NORM = -9.80;
-
-template <typename T>
-Eigen::Matrix<T, 3, 1> refined_gravity(
-    Eigen::Map<const Eigen::Matrix<T, 2, 1>>& g_param) {
-  T cr = ceres::cos(g_param[0]);
-  T sr = ceres::sin(g_param[0]);
-  T cp = ceres::cos(g_param[1]);
-  T sp = ceres::sin(g_param[1]);
-  return Eigen::Matrix<T, 3, 1>(-sp * cr * T(GRAVITY_NORM),
-                                sr * T(GRAVITY_NORM),
-                                -cr * cp * T(GRAVITY_NORM));
-}
-
 template <int _N>
 class gyroSO3ConstBiasFactor : public basalt::CeresSplineHelper<_N> {
  public:
@@ -110,21 +96,8 @@ class GyroAcceWithConstantBiasFactor : public basalt::CeresSplineHelper<_N> {
     size_t Kont_offset = 2 * spline_meta_.NumParameters();
     Eigen::Map<const Vec3T> gyro_bias(sKnots[Kont_offset]);
     Eigen::Map<const Vec3T> acce_bias(sKnots[Kont_offset + 1]);
-    Eigen::Map<const Vec2T> g_refine(sKnots[Kont_offset + 2]);
+    Vec3T gravity(T(0), T(0), T(-9.8));
 
-#if 1
-
-    Vec3T gravity = licalib::refined_gravity(g_refine);
-
-#else
-
-    Eigen::Matrix<T, 3, 2> lxly = gravity_factor::TangentBasis(gravity);
-    Vec3T g_opt = (gravity + lxly * g_refine).normalized() * T(9.8);
-    /// 更新重力
-    gravity_factor::gg = g_opt;
-    // gravity_factor::gravity_jet<T> = g_opt;
-    // gravity = g_opt;
-#endif
     Vec3T gyro_residuals =
         rot_vel - imu_data_.gyro.template cast<T>() + gyro_bias;
     Vec3T acce_residuals = R_w_i.inverse() * (accel_w + gravity) -

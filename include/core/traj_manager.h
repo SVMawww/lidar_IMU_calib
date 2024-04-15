@@ -47,6 +47,7 @@ public:
   TrajPtr->setKnotSO3(Sophus::SO3<double>(q0), 0);
 
   ceres::Solver::Summary summary = estimator_so3->Solve(30, false, -1);
+  std::cout << summary.FullReport() << std::endl;
   }
   // void FeedIMUData(const IO::IMUData& imudata);
   void FeedIMUData(const IO::IMUData& imudata) {
@@ -95,17 +96,13 @@ public:
   void trajInitFromSurfel(SurfelAssociation::Ptr surfels_association,
                           bool opt_time_offset_) {
     auto estimator_so3 = std::make_shared<TrajEstimator<N>>(TrajPtr, calib_param);
-
+    // estimator_so3->addConstBiasGyroMeasurements(imu_data_, calib_param->global_opt_gyro_weight);
     estimator_so3->addAccelerometerMeasurement(imu_data_, calib_param->global_opt_gyro_weight, calib_param->global_opt_acce_weight);
     estimator_so3->addSurfMeasurement(surfels_association);
     // b /root/li_calib/src/lidar_IMU_calib/include/core/traj_manager.h:101
     ceres::Solver::Summary summary = estimator_so3->Solve(30, false, -1);
-    // Eigen::Vector3d qlini = Eigen::Map<Eigen::Vector3d>(lidar_->relative_position());
-    // Eigen::Quaterniond qltoi = Eigen::Map<Eigen::Quaterniond>(lidar_->relative_orientation());
+    std::cout << summary.FullReport() << std::endl;
 
-    // calib_param->set_p_LinI(qlini);
-    // calib_param->set_q_LtoI(qltoi);
-    // calib_param->set_time_offset(*lidar_->time_offset());
   }
 
 

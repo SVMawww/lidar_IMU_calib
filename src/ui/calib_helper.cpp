@@ -243,7 +243,6 @@ void CalibrHelper::Initialization() {
       Eigen::Vector3d euler_ItoL = qItoLidar.toRotationMatrix().eulerAngles(0,1,2);
       std::cout << "[Initialization] Done. Euler_ItoL initial degree: "
                 << (euler_ItoL*180.0/M_PI).transpose() << std::endl;
-      trajectory_manager->getTrajPtr()->print_knots();
       calib_step_ = InitializationDone;
       break;
     }
@@ -487,14 +486,19 @@ void CalibrHelper::saveCalibResult(const std::string& calib_result_file) const {
 void CalibrHelper::saveMap() const {
   if (calib_step_ <= Start)
     return;
-  std::string NDT_target_map_path = cache_path_ + "/NDT_target_map.pcd";
+  std::string step_;
+  if(calib_step_ == BatchOptimizationDone) { step_ = "batch_" + std::to_string(-1) + "_";}
+  else {
+    step_ = "step_" + std::to_string(iteration_step_) + "_";
+  }
+  std::string NDT_target_map_path = cache_path_ + "/" + step_ + "NDT_target_map.pcd";
   lidar_odom_->saveTargetMap(NDT_target_map_path);
 
-  std::string surfel_map_path = cache_path_ + "/surfel_map.pcd";
+  std::string surfel_map_path = cache_path_ + "/" + step_ + "surfel_map.pcd";
   surfel_association_->saveSurfelsMap(surfel_map_path);
 
   if (RefineDone == calib_step_) {
-    std::string refined_map_path = cache_path_ + "/refined_map.pcd";
+    std::string refined_map_path = cache_path_ + "/" + step_ + "refined_map.pcd";
     std::cout << "Save refined map to " << refined_map_path << "; size: "
               << scan_undistortion_->get_map_cloud()->size() << std::endl;
     pcl::io::savePCDFileASCII(refined_map_path, *scan_undistortion_->get_map_cloud());

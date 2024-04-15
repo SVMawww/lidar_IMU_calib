@@ -59,9 +59,13 @@ CalibInterface::CalibInterface(ros::NodeHandle& nh) :
     DataAssociation(); //  b /root/li_calib/src/lidar_IMU_calib/src/ui/calib_ui.cpp:60
 
     BatchOptimization();
+    saveMap();
 
-    for (size_t iter = 0; iter < 7; iter++)
+    for (size_t iter = 0; iter < 7; iter++){
       Refinement();
+      saveMap();
+    }
+      
 
     opt_time_offset_ = true;
     Refinement();
