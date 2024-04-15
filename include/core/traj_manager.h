@@ -48,6 +48,7 @@ public:
 
   ceres::Solver::Summary summary = estimator_so3->Solve(30, false, -1);
   std::cout << summary.FullReport() << std::endl;
+  calib_param->showStates();
   }
   // void FeedIMUData(const IO::IMUData& imudata);
   void FeedIMUData(const IO::IMUData& imudata) {
@@ -102,6 +103,7 @@ public:
     // b /root/li_calib/src/lidar_IMU_calib/include/core/traj_manager.h:101
     ceres::Solver::Summary summary = estimator_so3->Solve(30, false, -1);
     std::cout << summary.FullReport() << std::endl;
+    calib_param->showStates();
 
   }
 

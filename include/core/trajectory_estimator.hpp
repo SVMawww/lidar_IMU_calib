@@ -117,7 +117,7 @@ public:
       cost_function->SetNumResiduals(6);
 
       std::vector<double*> vec;
-      AddControlPoints(spline_meta, vec);
+      AddControlPoints(spline_meta, vec, false);
       AddControlPoints(spline_meta, vec, true);
         
       vec.emplace_back(calib_param_->gyro_bias.data());

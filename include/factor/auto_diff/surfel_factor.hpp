@@ -40,9 +40,9 @@ bool operator()(const T* const* params, T* residual) const {
   auto T_IktoG = T_IktoG_.cast<T>();
   size_t offset = 0;
 
-  auto lidar_param = params[offset];
-  Eigen::Matrix<T, 3, 1> p_LinI = Eigen::Map<const Eigen::Matrix<T, 3, 1>>(lidar_param);
-  Eigen::Quaternion<T> q_LtoI = Eigen::Map<const Eigen::Quaternion<T>>(lidar_param+1);
+  // auto lidar_param = params[offset];
+  Eigen::Matrix<T, 3, 1> p_LinI = Eigen::Map<const Eigen::Matrix<T, 3, 1>>(params[offset]);
+  Eigen::Quaternion<T> q_LtoI = Eigen::Map<const Eigen::Quaternion<T>>(params[offset+1]);
   Eigen::Matrix<T, 3, 1> p_Lk = lidar_point_.cast<T>();
   Eigen::Matrix<T, 3, 1> p_I = q_LtoI * p_Lk + p_LinI;
   Eigen::Matrix<T, 3, 1> p_temp = T_I0toG.so3().unit_quaternion().conjugate()*(T_IktoG.so3().unit_quaternion() * p_I + T_IktoG.translation() - T_I0toG.translation());
@@ -50,8 +50,9 @@ bool operator()(const T* const* params, T* residual) const {
   offset += 2;
   // 3,one for vector3, one for quaternion, one for time_offset
   // time_offset deleted, now 2
-  const T* plane_cp = params[offset];
-  Eigen::Matrix<T,3,1> Pi = Eigen::Map<const Eigen::Matrix<T,3,1>>(plane_cp);
+  
+  // const T* plane_cp = params[offset];
+  Eigen::Matrix<T,3,1> Pi = Eigen::Map<const Eigen::Matrix<T,3,1>>(params[offset]);
   T plane_d = T(Pi.norm());
   T plane_norm[3];
   plane_norm[0] = T(Pi[0])/plane_d;
