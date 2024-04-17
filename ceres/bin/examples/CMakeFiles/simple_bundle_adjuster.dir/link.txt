@@ -1,0 +1,1 @@
+/usr/bin/c++   -fopenmp -Wno-unknown-pragmas -Wno-sign-compare -Wno-unused-parameter -Wno-missing-field-initializers -O3 -DNDEBUG   -rdynamic CMakeFiles/simple_bundle_adjuster.dir/simple_bundle_adjuster.cc.o  -o ../bin/simple_bundle_adjuster ../lib/libceres.a -lglog -lgomp -lpthread 

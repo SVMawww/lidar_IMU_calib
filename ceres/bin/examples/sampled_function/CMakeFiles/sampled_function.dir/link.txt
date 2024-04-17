@@ -1,0 +1,1 @@
+/usr/bin/c++   -fopenmp -Wno-unknown-pragmas -Wno-sign-compare -Wno-unused-parameter -Wno-missing-field-initializers -O3 -DNDEBUG   -rdynamic CMakeFiles/sampled_function.dir/sampled_function.cc.o  -o ../../bin/sampled_function ../../lib/libceres.a -lglog -lgomp -lpthread 
