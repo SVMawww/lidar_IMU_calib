@@ -54,11 +54,16 @@ class gyroSO3ConstBiasFactor : public basalt::CeresSplineHelper<_N> {
 };
 
 template <int _N>
-class GyroAcceWithConstantBiasFactor : public basalt::CeresSplineHelper<_N> {
+class AccelVec3WithConstBiasFactor : public basalt::CeresSplineHelper<_N> {
+
+};
+
+template <int _N>
+class GyroAcceWithBiasFactor : public basalt::CeresSplineHelper<_N> {
  public:
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
-  GyroAcceWithConstantBiasFactor(const IO::IMUData& imu_data,
+  GyroAcceWithBiasFactor(const IO::IMUData& imu_data,
                                  const basalt::SplineMeta<_N>& spline_meta,
                                  double gyro_weight, double acce_weight)
       : imu_data_(imu_data),
@@ -96,7 +101,7 @@ class GyroAcceWithConstantBiasFactor : public basalt::CeresSplineHelper<_N> {
     size_t Kont_offset = 2 * spline_meta_.NumParameters();
     Eigen::Map<const Vec3T> gyro_bias(sKnots[Kont_offset]);
     Eigen::Map<const Vec3T> acce_bias(sKnots[Kont_offset + 1]);
-    Vec3T gravity(T(0), T(0), T(-9.8));
+    Vec3T gravity(T(0), T(0), T(9.8));
 
     Vec3T gyro_residuals =
         rot_vel - imu_data_.gyro.template cast<T>() + gyro_bias;

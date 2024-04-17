@@ -40,7 +40,7 @@ public:
   CalibParamManager() :
           p_LinI(Eigen::Vector3d(0,0,0)) ,
           q_LtoI(Eigen::Quaterniond::Identity()),
-          gravity(Eigen::Vector3d(0, 0, -9.8)),
+          gravity(Eigen::Vector3d(0, 0, 9.8)),
           time_offset(new double(0)),
           gyro_bias(Eigen::Vector3d(0,0,0)),
           acce_bias(Eigen::Vector3d(0,0,0)) {
@@ -105,6 +105,23 @@ public:
     std::cout << "acce bias   : " << acce_bias.transpose() << std::endl;
     std::cout << "gyro bias   : " << gyro_bias.transpose() << std::endl;
   }
+/*
+--------------------------------------------------
+P_LinI      : 0 0 0
+euler_LtoI  :  178.137 -179.651 -91.6914
+P_IinL      : 0 0 0
+euler_ItoL  : 0.403651 -1.85142 -88.3078
+--------------------------------------------------
+P_LinI      : -0.0377491   0.425122   0.213813
+euler_LtoI  :  177.934  179.311 -90.1899
+P_IinL      : -0.519719  0.171403  -0.23641
+euler_ItoL  :  178.458 -177.806  66.4179
+time offset : 0
+gravity     :    0    0 -9.8
+acce bias   : 0.0549034  -3.46704   17.6787
+gyro bias   : -0.0264671   0.125723 -0.0641979
+--------------------------------------------------
+*/
 
   void save_result(const std::string& filename, const std::string& info) const {
     Eigen::Quaterniond q_ItoL = q_LtoI.inverse();

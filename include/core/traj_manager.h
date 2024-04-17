@@ -48,7 +48,7 @@ public:
 
   ceres::Solver::Summary summary = estimator_so3->Solve(30, false, -1);
   std::cout << summary.FullReport() << std::endl;
-  calib_param->showStates();
+  // calib_param->showStates();
   }
   // void FeedIMUData(const IO::IMUData& imudata);
   void FeedIMUData(const IO::IMUData& imudata) {
@@ -100,6 +100,7 @@ public:
     // estimator_so3->addConstBiasGyroMeasurements(imu_data_, calib_param->global_opt_gyro_weight);
     estimator_so3->addAccelerometerMeasurement(imu_data_, calib_param->global_opt_gyro_weight, calib_param->global_opt_acce_weight);
     estimator_so3->addSurfMeasurement(surfels_association);
+    std::cout << "\033[32m" << "[AddMeasurement] Done" << "\033[0m" << std::endl;
     // b /root/li_calib/src/lidar_IMU_calib/include/core/traj_manager.h:101
     ceres::Solver::Summary summary = estimator_so3->Solve(30, false, -1);
     std::cout << summary.FullReport() << std::endl;

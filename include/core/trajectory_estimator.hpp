@@ -96,7 +96,7 @@ public:
 
       TrajPtr->CalculateSplineMeta({{imu_data.timestamp, imu_data.timestamp}},
                                    spline_meta);
-      using Functor = GyroAcceWithConstantBiasFactor<N>;
+      using Functor = GyroAcceWithBiasFactor<N>;
       Functor* functor = new Functor(imu_data, spline_meta, gyro_weight, accel_weight);
       auto* cost_function = new ceres::DynamicAutoDiffCostFunction<Functor>(functor);
 
@@ -140,21 +140,27 @@ public:
     for(auto const& v : surfel_association->get_surfel_planes()) {
       closest_point_vec_.push_back(v.Pi);
     }
-
+    int numbers = 0;
     for(auto const& spoint: surfel_association->get_surfel_points()){
-      double time = spoint.timestamp;
+      numbers++;
+      basalt::SplineMeta<N> spline_meta;
+      double lidar_time = spoint.timestamp;
       size_t plane_id = spoint.plane_id;
       // auto knotsize = TrajPtr->getKnots().size();
       auto weight = calib_param_->global_opt_lidar_weight;
       auto maptime = surfel_association->get_maptime();
-      auto T_I0toG = TrajPtr->EvaluatePose(maptime);
-      auto T_IktoG = TrajPtr->EvaluatePose(time);
+      TrajPtr->CalculateSplineMeta({{maptime, lidar_time}}, spline_meta);
       
-      Functor* functor = new Functor(// lidar_, //knotsize, 
-          maptime, weight, spoint.point,
-          T_I0toG, T_IktoG);
+      Functor* functor = new Functor(
+          maptime, lidar_time, weight, spoint.point,
+          spline_meta);
       auto* cost_function = new ceres::DynamicAutoDiffCostFunction<Functor>(functor);
-
+      for(int i = 0; i < spline_meta.NumParameters(); i++) {
+        cost_function->AddParameterBlock(4);
+      }
+      for(int i = 0; i < spline_meta.NumParameters(); i++) {
+        cost_function->AddParameterBlock(3);
+      }
       cost_function->AddParameterBlock(3); // vector3
       cost_function->AddParameterBlock(4); // quaternion
       // cost_function->AddParameterBlock(1); // time_offset
@@ -164,12 +170,24 @@ public:
       cost_function->SetNumResiduals(1);
 
       std::vector<double*> vec;
-      addSurfParams(closest_point_vec_.at(plane_id).data(), vec);
+      AddControlPoints(spline_meta, vec, false);
+      AddControlPoints(spline_meta, vec, true);
+      // addSurfParams(closest_point_vec_.at(plane_id), vec);
+      vec.emplace_back(calib_param_->p_LinI.data());
+      vec.emplace_back(calib_param_->q_LtoI.coeffs().data());
+      // vec.emplace_back(calib_param_->time_offset);
+      vec.emplace_back(closest_point_vec_.at(plane_id).data());
+
+      problem_->AddParameterBlock(calib_param_->p_LinI.data(), 3);
+      problem_->AddParameterBlock(calib_param_->q_LtoI.coeffs().data(), 4);
+      // problem_->AddParameterBlock(calib_param_->time_offset, 1);
+      problem_->AddParameterBlock(closest_point_vec_.at(plane_id).data(), 3);
 
       problem_->AddResidualBlock(cost_function, nullptr, vec);
     }
     problem_->SetParameterBlockConstant(TrajPtr->getKnotPos(0+1e-9).data());
     problem_->SetParameterBlockConstant(TrajPtr->getKnotSO3(0+1e-9).data());
+    std::cout << "\033[32m" << "surfel numbers " << numbers <<  "\033[0m" << std::endl;
   }
 
   void AddControlPoints(
@@ -194,19 +212,16 @@ public:
     }
   }
 
-  void addSurfParams(double* plane, std::vector<double*>& vec) {
-
-
+  void addSurfParams(Eigen::Vector3d plane, std::vector<double*>& vec) {
     vec.emplace_back(calib_param_->p_LinI.data());
     vec.emplace_back(calib_param_->q_LtoI.coeffs().data());
     // vec.emplace_back(calib_param_->time_offset);
+    vec.emplace_back(plane.data());
 
     problem_->AddParameterBlock(calib_param_->p_LinI.data(), 3);
     problem_->AddParameterBlock(calib_param_->q_LtoI.coeffs().data(), 4);
     // problem_->AddParameterBlock(calib_param_->time_offset, 1);
-
-    vec.emplace_back(plane);
-    problem_->AddParameterBlock(plane, 3);
+    problem_->AddParameterBlock(plane.data(), 3);
   }
 
   ceres::Solver::Summary Solve(int max_iterations,

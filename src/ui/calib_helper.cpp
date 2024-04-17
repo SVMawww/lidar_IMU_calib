@@ -243,6 +243,7 @@ void CalibrHelper::Initialization() {
       Eigen::Vector3d euler_ItoL = qItoLidar.toRotationMatrix().eulerAngles(0,1,2);
       std::cout << "[Initialization] Done. Euler_ItoL initial degree: "
                 << (euler_ItoL*180.0/M_PI).transpose() << std::endl;
+      trajectory_manager->getCalibParamManager()->showStates();
       calib_step_ = InitializationDone;
       break;
     }
